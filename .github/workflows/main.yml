@@ -1,0 +1,25 @@
+name: CI-CD-Pipeline-to-AWS-ElacticBeastlak
+
+on:
+  push:
+    branches:
+    - main
+#Глобальные переменные
+env:
+  EB_PACKAGE_S3_BUCKET_NAME: "unlif-flask-application-packages" #название s3 bucket
+  EB_APPLICATION_NAME      : "MyFlask" #название Elastick beanstalk
+  EP_ENVIRONMENT_NAME      : "MyFlask-env" # создается в нашем Elastick Beanstalk
+  DEPLOY_PACKAGE_NAME      : "flask_app_${{ github.sha }}.zip"
+  AWS_REGION_NAME          : "us-east-2"
+  
+
+jobs:
+  my_ci_part:
+    runs-on: ubuntu-latest
+#Первым делом клонируем гит
+    steps:
+    - name: Git clone our repo
+      uses: actions/checkout@v1
+#запаковываем наши файлы в ZIP, кроме файлов с расширением git
+    - name: Create ZIP deployment package
+      run: ZIP -r ${{ env.DEPLOY_PACKAGE_NAME }} ./ -x *.git*
