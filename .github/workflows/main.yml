@@ -38,7 +38,7 @@ jobs:
       run: echo " CI Pipeline part Finished susccessfully!"
 
   my_cd_part:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
 #делаем условие, чтоб выполнялся только после job-a my_ci_part
     needs: [my_ci_part]
 #в CD 4 шага. 1) AWS credentials, 2) новый elastic beans stock version 3) deploy 4) happy message
@@ -58,7 +58,7 @@ jobs:
         aws elasticbeanstalk create-application-version \
         --application-name ${{ env.EB_APPLICATION_NAME }} \
         --source-bundle S3Bucket="${{ env.EB_PACKAGE_S3_BUCKET_NAME }}",S3Key="${{ env.DEPLOY_PACKAGE_NAME }}"\
-        --version-label "Ver-${{ github.sha }}" \
+        --version-label v1 \
         --description "CommitSHA-${{ github.sha }}"
 # 3 шаг        
     - name:  Deploy new ElascticBeanstal Application Version
