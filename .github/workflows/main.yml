@@ -36,6 +36,33 @@ jobs:
 #пишем крассивое сообщение      
     - name: Print Happy Message for CI finish
       run: echo " CI Pipeline part Finished susccessfully!"
-    
-        
-        
+
+  my_cd_part:
+    runs-on: ubuntu-latest
+#делаем условие, чтоб выполнялся только после job-a my_ci_part
+    needs: [my_ci_part]
+#в CD 4 шага. 1) AWS credentials, 2) новый elastic beans stock version 3) deploy 4) happy message
+    steps:
+#1)скрипт конфигурирует AWS credentials. aws-actions( репозиторий AWS). И в скрипт нужно послать access key и secret key     
+    - name: Configure my AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id    :      ${{ secrets.MY_AWS_ACCESS_KEY }}
+        aws-secret-access-key:      ${{ secrets.MY_AWS_SECRET_KEY }}
+        aws-region           :      ${{ env.AWS_REGION_NAME }}
+# 2 шаг
+# | ( мултилайн), \ ( перенос на след.строку). --application-name ${{ env.EB_APPLICATION_NAME }} \ (опциональная команда). --source-bundle( откуда брать).
+#S3Key="${{ env.DEPLOY_PACKAGE_NAME }}"\ ( название файла, который мы загрузили в s3 bucket)
+    - name: Create new ElasticBeanstalk Application
+      run: |
+        aws elasticbeanstalk create-application-version \
+        --application-name ${{ env.EB_APPLICATION_NAME }} \
+        --source-bundle S3Bucket="${{ env.EB_PACKAGE_S3_BUCKET_NAME }}",S3Key="${{ env.DEPLOY_PACKAGE_NAME }}"\
+        --version-label "Ver-${{ github.sha }}" \
+        --description "CommitSHA-${{ github.sha }}"
+# 3 шаг        
+    - name:  Deploy new ElascticBeanstal Application Version
+      run: aws elasticbeanstalk update-environment --environmvent-name ${{ env.EP_ENVIRONMENT_NAME }} --version-label "Ver-${{ github.sha }}"
+# 4 шаг     
+    - name: Print Happy Message for CD finish
+      run: echo " CD Pipeline part Finished susccessfully!"
